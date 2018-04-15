@@ -15,10 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     E5 = 0.1;
     pi = 3.14159265359;
 
-    X[0] = 367;
+    X[0] = 0;
     X[1] = 0;
     X[2] = 0;
-    X[3] = 43.97;// tetta (угол стрельбы)
+    X[3] = 0;// tetta (угол стрельбы)
 
     H0 = 1;
     H1 = 1;
@@ -29,29 +29,33 @@ MainWindow::MainWindow(QWidget *parent) :
     T4 = 0;
 
     T[0] = 0;
+    K = 1;
+    K4 = 0;
     //T[0] = H1;//T(1)
     H = H0;
+
+    T1= 10;
+    J1 = 200;
+    Q3 = 1;
+    T3 = 1000;
+
+    T[2] = H1;
+    K2 = 0;
+    K3 = 0;
 }
 
 MainWindow::~MainWindow()
 {
-//    delete O;
-//    delete V;
-//    delete X;
     delete ui;
 }
 
 void MainWindow::on_pushButton_clicked()
 {
-
-//    double d, V, O, G, j, y, a, M, T, Cx;
-
     D = ui->doubleSpinBox->value();
     X[0] = ui->doubleSpinBox_2->value();
     X[3] = ui->doubleSpinBox_3->value();
     Q = ui->doubleSpinBox_4->value();
     i43 = ui->doubleSpinBox_5->value();
-//    y = ui->doubleSpinBox_6->value();
 
     float density_table[3][18]= {{0,250,500,750,1000,1500,2000,2500,3000,3500,4000,4500,5000,6000,7000,8000,9000,10000},//высота в метрах
                                  {1.22,1.20,1.17,1.14,1.11,1.06,1.00,0.96,0.91,0.86,0.82,0.78,0.74,0.66,0.59,0.53,0.47,0.41},//давление
@@ -64,11 +68,11 @@ void MainWindow::on_pushButton_clicked()
 
     f_650();
     PRINT();
-    f_320();
 
+    for(int i=0;i<45;i++)
+        f_320();
 
     cout<<"T5 "<<T5<<"\nR0 "<<R0<<"\nA "<<A<<"\nV1 "<<V1 <<"\nMX "<<MX <<"\nCX "<<CX<<"\n"<<endl;
-    //ui->statusBar->showMessage(QString::number(X[3]));
 }
 
 
@@ -102,17 +106,18 @@ double MainWindow::Cx_43(double n)
 
 void MainWindow::PRINT()
 {
-     cout<<"| "<< T[0] <<" | "<<X[0]<<" | "<<X[1]<<" | "<<X[2]<<" | "<<X[3]<< " |"<<endl;
-     ui->label_13->setText(QString::number(T[0]));
-     ui->label_14->setText(QString::number(X[0]));
-     ui->label_15->setText(QString::number(X[1]));
-     ui->label_16->setText(QString::number(X[2]));
-     ui->label_17->setText(QString::number(X[3]));
+     QString b= "| ";
+     b+= QString::number(T[0]) + " | " + QString::number(X[0]) + " | " + QString::number(X[1]) + " | " +
+             QString::number(X[2]) + " | " + QString::number(X[3]) + " |\n";
+     ui->listWidget->addItem(b);
      H = H0;
 }
 
 void MainWindow::f_650()
 {
+    Q1 = Q - Q3 / T1 * (T[0] - T3) * K;
+    P = Q3 * J1 / T1 * K;
+
     if(X[2]>9300)
     {
         T5 = 221.5 + T4;
@@ -137,27 +142,73 @@ void MainWindow::f_650()
         CX =0.157;
 
 
-    CX1 = CX * i43;
+    CX1 = CX * i43 - CX * 0.1 * i43 * K;
     X_X = CX1 * S * R0 * V1 * V1 / 2;
 
-    F[0] = 9.80665 /(X_X - sin(X[3]));
+    F[0] = 9.80665 / Q1 * (P - X_X - Q1 * sin(X[3]));
     F[1] = X[0] * cos(X[3]);
     F[2] = X[0] * sin(X[3]);
-    F[3] = -9.80665 * (X_X * W0 * sin(X[3]) / V1 + cos(X[3])) / X[0];
+    F[3] = -9.80665 * (X_X * W0 * sin(X[3]) / (Q1 * V1) + cos(X[3])) / X[0];
 }
 
 void MainWindow::f_320()
 {
-    if(X[3]>0)
-        f_380();
-
-    if(abs(X[3])<E0)
+    if(K2 == 1)
+    {
+        if(abs(X[2]< E0))//350
+        {
+            PRINT();
+            ui->listWidget->addItem("endl programm!!");
+        }
+        else
+        {
+            //Y =
+            H = X[2] * H /(X[6] - X[2]);
+           // H = Y;
+            K2 = 1;
+            runge();
+        }
+    }
+    else if(K3 == 1)
     {}
+    else if(X[3]>0)
+        f_380();
+    else
+    {
+
+    if(K4 == 1)
+    {
+        if(X[2] > 0)
+            f_380();
+        else
+        {
+            if(abs(X[2]< E0))//350
+            {
+                PRINT();
+                ui->listWidget->addItem("endl programm!!");
+            }
+            else
+            {
+                //Y =
+                H = X[2] * H /(X[6] - X[2]);
+               // H = Y;
+                K2 = 1;
+                runge();
+            }
+        }
+    }
+    else if(abs(X[3])<E0)
+    {
+        K4 =1;
+        PRINT();
+        runge();
+    }
     else
     {
         H = -H/2;
         //K3 = 0;
         runge();
+    }
     }
 }
 
@@ -171,58 +222,118 @@ void MainWindow::runge()
     for (int i=0;i<4;i++)
         k[0][i] = F[i];
 
-    int H2;
+    double H2;
     H2 = H / 2;
     T[0] = T[0] + H2;
 
     for(int L=0;L<3;L++)// вообще не знаю зачем это -_-
     {
-        int INT;
-        INT = L / 3;
-        T[0] = T[0] + INT * H2;
+        int g =L;
+        ++g;
+        //int INT;
+        //INT = L / 3;
+        T[0] = T[0] + INT(g/3) * H2;
 
         for (int i=0;i<4;i++)
-            X[i] = X[4 + i] + H2 * k[L][i] * (INT + 1);
+            X[i] = X[4 + i] + H2 * k[L][i] * INT(g/3 + 1);
 
         f_650();
 
-        int g =L;
-        g++;
+
+       // ++g;
+        //--g;
         for (int j=0;j<4;j++)
             k[g][j] = F[j];
-        g = 0;
+       // g = 0;
     }
     for (int i=0;i<4;i++)
-        X[i] = X[4 + 1] + H / 6 * (k[0][i] + 2 * k[1][i] + 2 * k[2][i] + 2 * k[3][i]);
+        X[i] = X[4 + 1] + H / 6 * (k[0][i] + 2 * k[1][i] + 2 * k[2][i] + k[3][i]);
+
+   // f_320();
+    //return;
 }
+
 void MainWindow::f_380()
 {
-    if(abs(T[0] - T[1])<E0)
+    if(abs(T[0] - T[1])<E0)//380
     {
-        T[1] = T[1] + H1;
-        PRINT();
+        T[1] = T[1] + H1;//390
+        PRINT();//400
+        f_405();
     }
     else if(T[0]+H<T[1])
     {
+        f_405();
     }
     else
     {
         H = T[1] - T[0];
+        f_405();
     }
 
 }
-void f_405()
+
+int MainWindow::INT(double n)
 {
-//    if(abs(X[1] - 4940)<E5)
-//    {
-//        PRINT();
-//        runge();
-//    }
-//    else
-//    {
+    return n;
+}
 
-//    }
+void MainWindow::f_405()
+{
+    if(abs(X[1] - 4940) < E5)//405
+    {
+        PRINT();
+        runge();
+    }else
+    {
+        if(abs(T[0] - T[2]) < E0)//410
+        {
+               if(K == 0)//420
+               {
+                   T[2] = T[2] + T1;//430
+                   K =1;
+                   PRINT();
+                   runge();
+
+               }else
+               {
+                   K = 0;
+                   Q =Q1;
+                   T[2] = T[2]+1000;
+                   PRINT();
+                   runge();
+               }
+        }
+        else if(T[0] + H < T[2])
+        {
+            runge();
+        }
+        else
+        {
+            H = T[2] - T[0];
+            runge();
+        }
+    }
 
 
+}
 
+void MainWindow::on_pushButton_2_clicked()
+{
+
+    for(int i =0;i<4;i++)
+        X[i] = 0;
+    H0 = 1;
+    H1 = 1;
+
+    i43 = 0.8379;
+    D = 0.12;
+    W0 = 0;
+    T4 = 0;
+
+    T[0] = 0;
+    K4 = 0;
+    //T[0] = H1;//T(1)
+    H = H0;
+    ui->listWidget->clear();
 }
