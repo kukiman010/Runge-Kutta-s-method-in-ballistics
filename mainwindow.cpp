@@ -138,40 +138,6 @@ MainWindow::MainWindow(QWidget *parent) :
     K3 = 0;
 }
 
-void MainWindow::addPointWithText(double x, double y, QString text)
-{
-    const QColor& pointColor = Qt::green;
-    const QColor& lineColor = Qt::red;
-    int ballSize = 8;
-
-    double x_toPix = (x / 1000) * _squareSize;
-    double y_toPix = (y / 1000) * _squareSize;
-
-    double d_x = 0.0, d_y= 0.0;
-    d_y = (_height_line - (ballSize/2)) - y_toPix;
-    d_x = (ballSize/2) + x_toPix;
-
-    QPointF point(d_x, d_y);
-    _scene->addEllipse(point.x(),point.y(), ballSize, ballSize, QPen(pointColor), QBrush(pointColor));
-
-
-    if( text.isEmpty())
-    {
-        text = "(%1, %2)";
-        text = text.arg(x).arg(y);
-    }
-
-    QGraphicsTextItem* textItem = _scene->addText( text );
-    textItem->setDefaultTextColor(Qt::black);
-    textItem->setRotation(90);
-    textItem->setPos(point.x()+15, point.y() - 100);
-
-    if (_lastPoint.x() != -1 && _lastPoint.y() != -1)
-        _scene->addLine(_lastPoint.x(), _lastPoint.y(), d_x, d_y, QPen(lineColor, 2));
-
-    _lastPoint = point;
-}
-
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -450,4 +416,37 @@ void MainWindow::addRow(const double T, const double V, const double X, const do
     _model->appendRow(items);
 }
 
+void MainWindow::addPointWithText(double x, double y, QString text)
+{
+    const QColor& pointColor = Qt::green;
+    const QColor& lineColor = Qt::red;
+    int ballSize = 8;
+
+    double x_toPix = (x / 1000) * _squareSize;
+    double y_toPix = (y / 1000) * _squareSize;
+
+    double d_x = 0.0, d_y= 0.0;
+    d_y = (_height_line - (ballSize/2)) - y_toPix;
+    d_x = (ballSize/2) + x_toPix;
+
+    QPointF point(d_x, d_y);
+    _scene->addEllipse(point.x()-8, point.y(), ballSize, ballSize, QPen(pointColor), QBrush(pointColor));
+
+
+    if( text.isEmpty())
+    {
+        text = "(%1, %2)";
+        text = text.arg(x).arg(y);
+    }
+
+    QGraphicsTextItem* textItem = _scene->addText( text );
+    textItem->setDefaultTextColor(Qt::black);
+    textItem->setRotation(90);
+    textItem->setPos(point.x()+15, point.y() - 100);
+
+    if (_lastPoint.x() != -1 && _lastPoint.y() != -1)
+        _scene->addLine(_lastPoint.x(), _lastPoint.y(), d_x, d_y, QPen(lineColor, 2));
+
+    _lastPoint = point;
+}
 
