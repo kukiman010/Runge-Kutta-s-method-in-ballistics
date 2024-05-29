@@ -1,0 +1,14 @@
+*.orig
+*.~
+*.user
+*.user*
+*.o
+*.a
+*.szi
+*.moc
+ui_*
+*.autosave
+moc_*.cpp
+qrc_*.cpp
+lib/
+*Makefile
