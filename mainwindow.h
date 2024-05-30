@@ -26,6 +26,9 @@ public:
     ~MainWindow();
 
     void PRINT();
+    void default_math();
+    void default_graph();
+    void clear();
 
 private slots:
     void on_pushButton_clicked();

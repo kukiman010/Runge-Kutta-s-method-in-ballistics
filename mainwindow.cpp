@@ -26,10 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // _graphWidget = new GraphWidget(ui->widget);
     // _graphWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->widget->setVisible(false);
+    // ui->widget->setVisible(false);
 
-
-    x_max = 10000, y_max = 5000;
     // _scene->setSceneRect(0, 0, 1200, 600);
     // QPen axisPen(Qt::black, 3);
     // _scene->addLine(50, 550, 1150, 550, axisPen);
@@ -40,131 +38,22 @@ MainWindow::MainWindow(QWidget *parent) :
     // previousPoint = QPointF();
 
 
-/*
-     y/height
-    ^
-    |
-    |
-    ------>
-          x / width
-*/
-
-
-
+    x_max = 10000, y_max = 5000;
     ui->graphicsView->setMinimumHeight(300);
     ui->graphicsView->setMinimumWidth(500);
 
-    int y_size = ui->graphicsView->height();
-    int x_size = ui->graphicsView->width();
 
-    int y_max = 5000;
-    int x_max = 10000;
+    default_graph();
+    default_math();
 
-    int y_km = y_max / 1000;
-    int x_km = x_max / 1000;
-
-    int y_km_to_pix = y_size / y_km;
-    int x_km_to_pix = x_size / x_km;
-
-    _squareSize = ( x_km_to_pix + y_km_to_pix) /2;
-
-    _scene->setSceneRect(x_size, y_size, 0,0);
-
-    _wight_line = _squareSize * x_km;
-    _height_line = _squareSize * y_km;
-    _lastPoint = QPointF(0,_height_line);
-
-    for (int x=0, x_c=0; x <= x_km; x++, x_c += _squareSize)
-    {
-        if (x == 0)
-            _scene->addLine(0, 0, 0, _height_line, QPen(Qt::black, 3));
-        else
-        {
-            _scene->addLine(x_c, 0, x_c, _height_line, QPen(Qt::lightGray));
-            auto* text = _scene->addText(QString::number(1000 * x));
-            text->setPos(x_c - text->boundingRect().width() / 2, _height_line - text->boundingRect().height());
-        }
-    }
-
-    for (int y=0, y_c=0; y <= y_km; y++, y_c += _squareSize)
-    {
-        if (y == 0)
-        {
-            _scene->addLine(0, _height_line, _wight_line, _height_line, QPen(Qt::black, 3));
-            auto* text = _scene->addText(QString::number(y));
-            text->setPos(-text->boundingRect().width(), _height_line - y_c - text->boundingRect().height() / 2);
-        }
-        else
-        {
-            _scene->addLine(0, _height_line - y_c, _wight_line, _height_line - y_c , QPen(Qt::lightGray));
-            auto* text = _scene->addText(QString::number(1000 * y));
-            text->setPos(-text->boundingRect().width(), _height_line - y_c - text->boundingRect().height() / 2);
-        }
-    }
-
-
-//    e = 2.71828;
-//    g= 9.81;
-//    t= 0.1;
-    E0 = 0.01;
-    E5 = 0.1;
-
-    X[0] = 0;
-    X[1] = 0;
-    X[2] = 0;
-    X[3] = 0;
-
-    H0 = 1;
-    H1 = 1;
-
-    i43 = 0.8379;
-    D = 0.12;
-    W0 = 0;
-    T4 = 0;
-
-    T[0] = 0;
-    K = 1;
-    K4 = 0;
-    //T[0] = H1;//T(1)
-    H = H0;
-
-    T1= 10;
-    J1 = 200;
-    Q3 = 1;
-    T3 = 1000;
-
-    T[2] = H1;
-    K2 = 0;
-    K3 = 0;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete _model;
+    delete _scene;
 }
-
-void MainWindow::on_pushButton_clicked()
-{
-    D = ui->doubleSpinBox->value();
-    X[0] = ui->doubleSpinBox_2->value();
-    X[3] = ui->doubleSpinBox_3->value();
-    Q = ui->doubleSpinBox_4->value();
-    i43 = ui->doubleSpinBox_5->value();
-
-//    float density_table[3][18]= {{0,250,500,750,1000,1500,2000,2500,3000,3500,4000,4500,5000,6000,7000,8000,9000,10000},//высота в метрах
-//                                 {1.22,1.20,1.17,1.14,1.11,1.06,1.00,0.96,0.91,0.86,0.82,0.78,0.74,0.66,0.59,0.53,0.47,0.41},//давление
-//                                 {15,13,12,10,8,5,2,-1,-4,-8,-11,-14,-18,24,-30,-37,-44,-50}};// температура
-    X[3] = X[3] / 180 * M_PI; // tetta (угол стрельбы) to radian
-    S = M_PI * pow(D,2) / 4;
-
-    f_650();
-
-    for(int i=0;i<45;i++)
-        f_320();
-
-    cout<<"T5 "<<T5<<"\nR0 "<<R0<<"\nA "<<A<<"\nV1 "<<V1 <<"\nMX "<<MX <<"\nCX "<<CX<<"\n"<<endl;
-}
-
 
 double MainWindow::Cx_43(double n)
 {
@@ -185,17 +74,6 @@ double MainWindow::Cx_43(double n)
         }
     }
    return a[1][39];
-}
-
-void MainWindow::PRINT()
-{
-     addRow( T[0], X[0], X[1], X[2], X[3], CX1);
-
-     // _graphWidget->addPoint(X[1], X[2], QString::number(T[0]) );
-     // test_add(X[1], X[2]);
-     addPointWithText(X[1], X[2]);
-
-     H = H0;
 }
 
 void MainWindow::f_650()
@@ -378,10 +256,56 @@ void MainWindow::f_405()
     }
 }
 
+void MainWindow::on_pushButton_clicked()
+{
+    clear();
+
+    D = ui->doubleSpinBox->value();
+    X[0] = ui->doubleSpinBox_2->value();
+    X[3] = ui->doubleSpinBox_3->value();
+    Q = ui->doubleSpinBox_4->value();
+    i43 = ui->doubleSpinBox_5->value();
+
+    //    float density_table[3][18]= {{0,250,500,750,1000,1500,2000,2500,3000,3500,4000,4500,5000,6000,7000,8000,9000,10000},//высота в метрах
+    //                                 {1.22,1.20,1.17,1.14,1.11,1.06,1.00,0.96,0.91,0.86,0.82,0.78,0.74,0.66,0.59,0.53,0.47,0.41},//давление
+    //                                 {15,13,12,10,8,5,2,-1,-4,-8,-11,-14,-18,24,-30,-37,-44,-50}};// температура
+    X[3] = X[3] / 180 * M_PI; // tetta (угол стрельбы) to radian
+    S = M_PI * pow(D,2) / 4;
+
+    f_650();
+
+    for(int i=0;i<45;i++)
+        f_320();
+
+    cout<<"T5 "<<T5<<"\nR0 "<<R0<<"\nA "<<A<<"\nV1 "<<V1 <<"\nMX "<<MX <<"\nCX "<<CX<<"\n"<<endl;
+}
+
 void MainWindow::on_pushButton_2_clicked()
 {
-    for(int i =0;i<4;i++)
-        X[i] = 0;
+    clear();
+}
+
+void MainWindow::PRINT()
+{
+    addRow( T[0], X[0], X[1], X[2], X[3], CX1);
+
+    // _graphWidget->addPoint(X[1], X[2], QString::number(T[0]) );
+    // test_add(X[1], X[2]);
+    addPointWithText(X[1], X[2]);
+
+    H = H0;
+}
+
+void MainWindow::default_math()
+{
+    //    e = 2.71828;
+    //    g= 9.81;
+    //    t= 0.1;
+    E0 = 0.01;
+    E5 = 0.1;
+
+    for(int i=0;i<8;i++)
+        X[i] = 0.0;
 
     H0 = 1;
     H1 = 1;
@@ -391,15 +315,117 @@ void MainWindow::on_pushButton_2_clicked()
     W0 = 0;
     T4 = 0;
 
-    T[0] = 0;
+    for(int i=0;i<10;i++)
+        T[i] = 0;
+    K = 1;
     K4 = 0;
-    //T[0] = H1;//T(1)
     H = H0;
-    ui->label_info->clear();
+
+    T1= 10;
+    J1 = 200;
+    Q3 = 1;
+    T3 = 1000;
+
+    T[2] = H1;
+    K2 = 0;
+    K3 = 0;
+
+
+
+    R0 = 0;
+    A = 0;
+    V1 = 0;
+    T5 = 0;
+    S = 0;
+    MX = 0;
+    CX = 0;
+    CX1 = 0;
+    Q = 0;
+    X_X = 0;
+    Q1 = 0;
+    P = 0;
+
+    for(int i=0;i<4;i++)
+        F[i] = 0.0;
+
+    for(int i=0;i<4;i++)
+        for(int j=0;j<4;j++)
+            k[i][j] = 0.0;
+
+}
+
+void MainWindow::default_graph()
+{
+    /*
+     y/height
+    ^
+    |
+    |
+    ------>
+          x / width
+*/
+
     _scene->clear();
+
+    int y_size = ui->graphicsView->height() -30;
+    int x_size = ui->graphicsView->width() -30;
+
+
+    int y_km = y_max / 1000;
+    int x_km = x_max / 1000;
+
+    int y_km_to_pix = y_size / y_km;
+    int x_km_to_pix = x_size / x_km;
+
+    // _squareSize = ( x_km_to_pix + y_km_to_pix) /2;
+    _squareSize = min(x_km_to_pix, y_km_to_pix);
+
+    _scene->setSceneRect(x_size, y_size, 0,0);
+
+    _wight_line = _squareSize * x_km;
+    _height_line = _squareSize * y_km;
+    _lastPoint = QPointF(0,_height_line);
+
+    qDebug() << y_size << x_size << _squareSize;
+
+    for (int x=0, x_c=0; x <= x_km; x++, x_c += _squareSize)
+    {
+        if (x == 0)
+            _scene->addLine(0, 0, 0, _height_line, QPen(Qt::black, 3));
+        else
+        {
+            _scene->addLine(x_c, 0, x_c, _height_line, QPen(Qt::lightGray));
+            auto* text = _scene->addText(QString::number(1000 * x));
+            text->setPos(x_c - text->boundingRect().width() / 2, _height_line - text->boundingRect().height());
+        }
+    }
+
+    for (int y=0, y_c=0; y <= y_km; y++, y_c += _squareSize)
+    {
+        if (y == 0)
+        {
+            _scene->addLine(0, _height_line, _wight_line, _height_line, QPen(Qt::black, 3));
+            auto* text = _scene->addText(QString::number(y));
+            text->setPos(-text->boundingRect().width(), _height_line - y_c - text->boundingRect().height() / 2);
+        }
+        else
+        {
+            _scene->addLine(0, _height_line - y_c, _wight_line, _height_line - y_c , QPen(Qt::lightGray));
+            auto* text = _scene->addText(QString::number(1000 * y));
+            text->setPos(-text->boundingRect().width(), _height_line - y_c - text->boundingRect().height() / 2);
+        }
+    }
+}
+
+void MainWindow::clear()
+{
+    default_math();
+    ui->label_info->clear();
 
     if(_model)
         _model->removeRows(0, _model->rowCount());
+
+    default_graph();
 }
 
 void MainWindow::addRow(const double T, const double V, const double X, const double H, const double TETA, const double CX1)
